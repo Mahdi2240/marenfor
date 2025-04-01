@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دردشة جماعية</title>
+    <style>
+        :root {
+            --primary: #0088cc;
+            --secondary: #005f8c;
+            --bg: #f5f5f5;
+            --text: #333;
+            --white: #fff;
+            --gray: #e9e9e9;
+            --dark-gray: #666;
+        }
+        
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        
+        .page {
+            display: none;
+            height: 100vh;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* واجهة التسجيل */
+        .auth-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 30px;
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .auth-container h1 {
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .auth-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        .auth-input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .auth-btn:hover {
+            background-color: var(--secondary);
+        }
+        
+        /* واجهة الدردشة */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--white);
+            overflow: hidden;
+        }
+        
+        .profile-header {
+            padding: 15px;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: bold;
+        }
+        
+        .profile-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .profile-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px;
+        }
+        
+        .search-container {
+            padding: 10px;
+            background-color: var(--gray);
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: var(--bg);
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            max-width: 70%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.sent {
+            background-color: #dcf8c6;
+            margin-left: auto;
+            border-bottom-right-radius: 0;
+        }
+        
+        .message.received {
+            background-color: var(--white);
+            margin-right: auto;
+            border-bottom-left-radius: 0;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .message-sender {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .message-text {
+            font-size: 15px;
+            line-height: 1.4;
+        }
+        
+        .message-time {
+            font-size: 12px;
+            color: var(--dark-gray);
+            text-align: end;
+            margin-top: 5px;
+        }
+        
+        .chat-input-container {
+            display: flex;
+            padding: 15px;
+            background-color: var(--white);
+            border-top: 1px solid #eee;
+            gap: 10px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 15px;
+            transition: border 0.3s;
+        }
+        
+        .chat-input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        
+        .send-btn {
+            padding: 10px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .send-btn:hover {
+            background-color: var(--secondary);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--dark-gray);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* للهواتف */
+        @media (max-width: 768px) {
+            .auth-container {
+                margin: 20px;
+                width: auto;
+            }
+            
+            .chat-container {
+                border-radius: 0;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- صفحة التسجيل -->
+    <div id="auth-page" class="page active">
+        <div class="auth-container">
+            <h1>مرحباً بك في الدردشة</h1>
+            <input type="text" id="username-input" class="auth-input" placeholder="اسم المستخدم" required>
+            <input type="text" id="bio-input" class="auth-input" placeholder="نبذة عنك (اختياري)">
+            <button id="register-btn" class="auth-btn">الدخول إلى الدردشة</button>
+        </div>
+    </div>
+
+    <!-- صفحة الدردشة -->
+    <div id="chat-page" class="page">
+        <div class="chat-container">
+            <div class="profile-header">
+                <div class="profile-info">
+                    <div class="profile-pic" id="profile-pic"></div>
+                    <div>
+                        <div id="profile-name"></div>
+                        <div id="profile-bio" style="font-size: 12px;"></div>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button id="refresh-btn" class="profile-btn" title="تحديث">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 4v6h-6"></path>
+                            <path d="M1 20v-6h6"></path>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                    </button>
+                    <button id="edit-profile-btn" class="profile-btn" title="تعديل الملف">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input" placeholder="ابحث في المحادثات...">
+            </div>
+            
+            <div id="chat-messages" class="chat-messages">
+                <div class="loading">جاري تحميل الرسائل...</div>
+            </div>
+            
+            <div class="chat-input-container">
+                <input type="text" id="message-input" class="chat-input" placeholder="اكتب رسالتك هنا..." autocomplete="off">
+                <button id="send-btn" class="send-btn">إرسال</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // إعدادات التطبيق
+        const CONFIG = {
+            GITHUB_REPO: 'YOUR_GITHUB_USERNAME/YOUR_REPO_NAME', // استبدل بمعلومات مستودعك
+            MESSAGES_FILE: 'messages.json',
+            USERS_FILE: 'users.json',
+            TOKEN: 'YOUR_GITHUB_TOKEN', // احصل على token من GitHub Settings > Developer settings
+            REFRESH_INTERVAL: 3000 // تحديث الرسائل كل 3 ثواني
+        };
+        
+        // عناصر DOM
+        const authPage = document.getElementById('auth-page');
+        const chatPage = document.getElementById('chat-page');
+        const usernameInput = document.getElementById('username-input');
+        const bioInput = document.getElementById('bio-input');
+        const registerBtn = document.getElementById('register-btn');
+        const profileName = document.getElementById('profile-name');
+        const profileBio = document.getElementById('profile-bio');
+        const profilePic = document.getElementById('profile-pic');
+        const editProfileBtn = document.getElementById('edit-profile-btn');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const searchInput = document.getElementById('search-input');
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        
+        // بيانات التطبيق
+        let currentUser = null;
+        let messages = [];
+        let users = [];
+        let refreshInterval;
+        
+        // ========== وظائف GitHub API ==========
+        
+        // جلب ملف من GitHub
+        async function fetchGitHubFile(filePath) {
+            try {
+                const response = await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_REPO}/contents/${filePath}`, {
+                    headers: {
+                        'Authorization': `token ${CONFIG.TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    return JSON.parse(atob(data.content) || '[]');
+                } else if (response.status === 404) {
+                    return [];
+                } else {
+                    throw new Error('Failed to fetch file');
+                }
+            } catch (error) {
+                console.error('Error fetching file:', error);
+                showNotification('حدث خطأ أثناء جلب البيانات');
+                return [];
+            }
+        }
+        
+        // حفظ ملف على GitHub
+        async function saveGitHubFile(filePath, content, message) {
+            try {
+                // جلب المعلومات الحالية للملف للحصول على SHA
+                const existingFile = await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_REPO}/contents/${filePath}`, {
+                    headers: {
+                        'Authorization': `token ${CONFIG.TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                let sha = null;
+                if (existingFile.ok) {
+                    const data = await existingFile.json();
+                    sha = data.sha;
+                }
+                
+                const response = await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_REPO}/contents/${filePath}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${CONFIG.TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message || 'Update file',
+                        content: btoa(JSON.stringify(content, null, 2)),
+                        sha: sha
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to save file');
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Error saving file:', error);
+                showNotification('حدث خطأ أثناء حفظ البيانات');
+                return false;
+            }
+        }
+        
+        // ========== وظائف التطبيق ==========
+        
+        // تحميل البيانات ا��أولية
+        async function loadInitialData() {
+            try {
+                [messages, users] = await Promise.all([
+                    fetchGitHubFile(CONFIG.MESSAGES_FILE),
+                    fetchGitHubFile(CONFIG.USERS_FILE)
+                ]);
+                
+                displayMessages();
+            } catch (error) {
+                console.error('Error loading initial data:', error);
+            }
+        }
+        
+        // تسجيل مستخدم جديد
+        async function registerUser(username, bio) {
+            const existingUser = users.find(user => user.username.toLowerCase() === username.toLowerCase());
+            
+            if (existingUser) {
+                // إذا كان المستخدم موجوداً، نستخدم بياناته
+                currentUser = existingUser;
+                showNotification(`مرحباً بعودتك ${username}!`);
+            } else {
+                // إذا كان مستخدم جديد، ننشئ له ملفاً
+                currentUser = {
+                    id: generateId(),
+                    username: username.trim(),
+                    bio: bio ? bio.trim() : '',
+                    joinedAt: new Date().toISOString(),
+                    lastSeen: new Date().toISOString()
+                };
+                
+                users.push(currentUser);
+                await saveGitHubFile(CONFIG.USERS_FILE, users, `Add new user: ${username}`);
+                showNotification(`مرحباً ${username}!`);
+            }
+            
+            updateProfileDisplay();
+            authPage.classList.remove('active');
+            chatPage.classList.add('active');
+            
+            // بدء تحديث الرسائل تلقائياً
+            startAutoRefresh();
+        }
+        
+        // تحديث الملف الشخصي
+        async function updateUserProfile(newUsername, newBio) {
+            if (!currentUser) return;
+            
+            const oldUsername = currentUser.username;
+            currentUser.username = newUsername.trim();
+            currentUser.bio = newBio ? newBio.trim() : '';
+            currentUser.lastSeen = new Date().toISOString();
+            
+            // تحديث الرسائل القديمة لتعكس التغيير في الاسم
+            messages.forEach(msg => {
+                if (msg.senderId === currentUser.id) {
+                    msg.sender = currentUser.username;
+                }
+            });
+            
+            await Promise.all([
+                saveGitHubFile(CONFIG.USERS_FILE, users, `Update user: ${oldUsername} to ${newUsername}`),
+                saveGitHubFile(CONFIG.MESSAGES_FILE, messages, `Update messages for user: ${oldUsername}`)
+            ]);
+            
+            updateProfileDisplay();
+            showNotification('تم تحديث الملف الشخصي بنجاح');
+        }
+        
+        // إرسال رسالة جديدة
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            
+            if (!text || !currentUser) return;
+            
+            const newMessage = {
+                id: generateId(),
+                text: text,
+                sender: currentUser.username,
+                senderId: currentUser.id,
+                timestamp: new Date().toISOString()
+            };
+            
+            messages.push(newMessage);
+            messageInput.value = '';
+            
+            const success = await saveGitHubFile(CONFIG.MESSAGES_FILE, messages, `New message from ${currentUser.username}`);
+            
+            if (success) {
+                displayMessages();
+                scrollToBottom();
+            }
+        }
+        
+        // عرض الرسائل
+        function displayMessages(filter = '') {
+            if (!messages.length) {
+                chatMessages.innerHTML = '<div class="loading">لا توجد رسائل بعد</div>';
+                return;
+            }
+            
+            chatMessages.innerHTML = '';
+            
+            const filtered = filter 
+                ? messages.filter(msg => 
+                    msg.text.toLowerCase().includes(filter.toLowerCase()) ||
+                    msg.sender.toLowerCase().includes(filter.toLowerCase()))
+                : messages;
+            
+            if (!filtered.length) {
+                chatMessages.innerHTML = '<div class="loading">لا توجد نتائج مطابقة</div>';
+                return;
+            }
+            
+            filtered.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${msg.senderId === currentUser?.id ? 'sent' : 'received'}`;
+                
+                const sender = users.find(u => u.id === msg.senderId) || { username: msg.sender };
+                
+                messageDiv.innerHTML = `
+                    <div class="message-sender">${sender.username}</div>
+                    <div class="message-text">${msg.text}</div>
+                    <div class="message-time">${formatTime(msg.timestamp)}</div>
+                `;
+                
+                chatMessages.appendChild(messageDiv);
+            });
+            
+            scrollToBottom();
+        }
+        
+        // تحديث البيانات تلقائياً
+        function startAutoRefresh() {
+            if (refreshInterval) clearInterval(refreshInterval);
+            
+            refreshInterval = setInterval(async () => {
+                const [newMessages, newUsers] = await Promise.all([
+                    fetchGitHubFile(CONFIG.MESSAGES_FILE),
+                    fetchGitHubFile(CONFIG.USERS_FILE)
+                ]);
+                
+                if (newMessages.length !== messages.length || newUsers.length !== users.length) {
+                    messages = newMessages;
+                    users = newUsers;
+                    displayMessages(searchInput.value);
+                }
+            }, CONFIG.REFRESH_INTERVAL);
+        }
+        
+        // ========== وظائف مساعدة ==========
+        
+        function updateProfileDisplay() {
+            if (!currentUser) return;
+            
+            profileName.textContent = currentUser.username;
+            profileBio.textContent = currentUser.bio || 'لا يوجد وصف';
+            profilePic.textContent = currentUser.username.charAt(0).toUpperCase();
+        }
+        
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+        
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function showNotification(text, duration = 3000) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = text;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, duration);
+        }
+        
+        // ========== event listeners ==========
+        
+        registerBtn.addEventListener('click', async () => {
+            const username = usernameInput.value.trim();
+            const bio = bioInput.value.trim();
+            
+            if (!username) {
+                showNotification('الرجاء إدخال اسم المستخدم');
+                return;
+            }
+            
+            await registerUser(username, bio);
+        });
+        
+        editProfileBtn.addEventListener('click', async () => {
+            const newUsername = prompt('اسم المستخدم الجديد:', currentUser.username);
+            if (!newUsername || !newUsername.trim()) return;
+            
+            const newBio = prompt('النبذة الجديدة:', currentUser.bio || '');
+            await updateUserProfile(newUsername, newBio);
+        });
+        
+        refreshBtn.addEventListener('click', async () => {
+            showNotification('جاري تحديث البيانات...');
+            await loadInitialData();
+        });
+        
+        searchInput.addEventListener('input', () => {
+            displayMessages(searchInput.value);
+        });
+        
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+        
+        sendBtn.addEventListener('click', sendMessage);
+        
+        // عند تحميل الصفحة
+        window.addEventListener('load', () => {
+            // تحميل البيانات الأولية
+            loadInitialData();
+            
+            // محاولة تحميل المستخدم من localStorage
+            const savedUser = localStorage.getItem('chat_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                updateProfileDisplay();
+                authPage.classList.remove('active');
+                chatPage.classList.add('active');
+                startAutoRefresh();
+            }
+        });
+        
+        // عند إغلاق الصفحة
+        window.addEventListener('beforeunload', () => {
+            if (currentUser) {
+                localStorage.setItem('chat_user', JSON.stringify(currentUser));
+            }
+            clearInterval(refreshInterval);
+        });
+    </script>
+</body>
+</html>
